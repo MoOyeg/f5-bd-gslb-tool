@@ -12,6 +12,7 @@
   pre_tasks:
     - debug: msg="BASE_DOMAIN={{BASE_DOMAIN}}"
     - debug: msg="BASE_AWS_DOMAIN={{BASE_AWS_DOMAIN}}"
+    - debug: msg="BASE_AWS_DOMAIN={{BASE_AZ_DOMAIN}}"
 
     # - name: Pip install dependencies
     #   pip:
