@@ -40,6 +40,7 @@
 
     - debug: msg="{{temp_target_clusters}}"
     
+
     - name: Set Local-Cluster if defined
       set_fact:
         target_local_cluster: 
@@ -48,7 +49,7 @@
     
     - name: Remove Old Local Cluster
       set_fact:
-        temp_clusters: "{{ temp_target_clusters | difference(target_local_cluster) }}"
+        temp_clusters: "{{ temp_target_clusters | difference(target_clusters | select('match', '^(local-cluster).*') | list) }}"
       when: target_local_cluster is defined
     
     - name: Update Target Clusters when when target_local_cluster is defined
