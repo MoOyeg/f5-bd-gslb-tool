@@ -40,31 +40,31 @@
     - debug: msg="{{temp_target_clusters}}"
     
     - set_fact:
-        target_clusters: "{{ temp_target_clusters }}"    
+        new_target_clusters: "{{ temp_target_clusters }}"    
         
     - name: Generate apiEndpoint URLs
       set_fact:
         apiEndpoint: "{{ apiEndpoint|default({}) | combine({ item: 'https://api.'+ item + '.' + API_DOMAIN + ':6443' }) }}"
-      loop: "{{target_clusters}}"
+      loop: "{{new_target_clusters}}"
     - debug: msg="{{apiEndpoint}}"
 
     - name: Retrieve publicAddress for AWS
       set_fact:
         #publicAddress: "{{ publicAddress|default({}) | combine({ item: { 'az1': lookup('dig', 'multicloud-console.apps.'+item+'.demo.red-chesterfield.com').split(',')[0], 'az2': lookup('dig', 'multicloud-console.apps.'+item+'.demo.red-chesterfield.com').split(',')[1]} }) }}"
         publicAddress: "{{ publicAddress|default({}) | combine({ item: { 'az1': lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_AWS_DOMAIN).split(',')[0]} }) }}"
-      loop: "{{target_clusters}}"
+      loop: "{{new_target_clusterss}}"
       when: lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_AWS_DOMAIN).split(',')[0] != 'NXDOMAIN'
 
     - name: Retrieve publicAddress for GCP
       set_fact:
         publicAddress: "{{ publicAddress|default({}) | combine({ item: { 'az1': lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_GCP_DOMAIN).split(',')[0]} }) }}"
-      loop: "{{target_clusters}}"
+      loop: "{{new_target_clusters}}"
       when: lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_GCP_DOMAIN).split(',')[0] != 'NXDOMAIN'
 
     - name: Retrieve publicAddress for Azure
       set_fact:
         publicAddress: "{{ publicAddress|default({}) | combine({ item: { 'az1': lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_AZ_DOMAIN).split(',')[0]} }) }}"
-      loop: "{{target_clusters}}"
+      loop: "{{new_target_clusters}}"
       when: lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_AZ_DOMAIN).split(',')[0] != 'NXDOMAIN'
 
     - debug: msg="{{publicAddress}}"
