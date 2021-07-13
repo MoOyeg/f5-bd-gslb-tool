@@ -30,7 +30,7 @@
     
     - name: Get EKS,AKS,GKS clusters from list
       set_fact:
-        target_other_clusters: "{{ ansible_interfaces | select('match', '^(eks|aks|gks).*') | list }}"
+        target_other_clusters: "{{ target_clusters | select('match', '^(eks|aks|gks).*') | list }}"
      
     - debug: msg="{{target_other_clusters}}"
     
