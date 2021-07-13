@@ -46,12 +46,17 @@
           - "cluster1"
       when: "{{ target_clusters | select('match', '^(local-cluster).*') | list | length > 0 }}"
     
-    - name: Create New Target Cluster List
+    - name: Remove Old Local Cluster
+      set_fact:
+        temp_target_clusters: "{{ temp_target_clusters | difference(target_local_cluster) }}"
+      when: target_local_cluster is defined
+
+    - name: Create New Target Cluster List when target_local_cluster is defined
       set_fact:
         new_target_clusters: "{{ temp_target_clusters + target_local_cluster }}"
       when: target_local_cluster is defined
 
-    - name: Create New Target Cluster List
+    - name: Create New Target Cluster List when target_local_cluster is undefined
       set_fact:
         new_target_clusters: "{{ temp_target_clusters }}"
       when: target_local_cluster is undefined
