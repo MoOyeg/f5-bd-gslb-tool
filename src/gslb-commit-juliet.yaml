@@ -34,14 +34,28 @@
      
     - debug: msg="{{target_other_clusters}}"
     
-    - set_fact:
+    - name: Remove Non-OpenShift Clusters
+      set_fact:
         temp_target_clusters: "{{ target_clusters | difference(target_other_clusters) }}"
 
     - debug: msg="{{temp_target_clusters}}"
     
-    - set_fact:
-        new_target_clusters: "{{ temp_target_clusters }}"    
-        
+    - name: Set Local-Cluster if defined
+      set_fact:
+        target_local_cluster: 
+          - "cluster1"
+      when: "{{ target_clusters | select('match', '^(local-cluster).*') | list | length > 0 }}"
+    
+    - name: Create New Target Cluster List
+      set_fact:
+        new_target_clusters: "{{ temp_target_clusters + target_local_cluster }}"
+      when: target_local_cluster is defined
+
+    - name: Create New Target Cluster List
+      set_fact:
+        new_target_clusters: "{{ temp_target_clusters }}"
+      when: target_local_cluster is undefined
+
     - name: Generate apiEndpoint URLs
       set_fact:
         apiEndpoint: "{{ apiEndpoint|default({}) | combine({ item: 'https://api.'+ item + '.' + API_DOMAIN + ':6443' }) }}"
