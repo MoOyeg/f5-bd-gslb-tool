@@ -1,0 +1,10 @@
+- hosts: localhost
+  gather_facts: no
+  vars_files:
+    # - "vars/credentials.yaml"
+    - "vars/setup.yaml"
+    #- "vars/gslbState.desired.yaml"
+  pre_tasks:
+    - debug: msg="BASE_DOMAIN={{BASE_DOMAIN}}"
+    - debug: msg="BASE_AWS_DOMAIN={{BASE_AWS_DOMAIN}}"
+    - debug: msg="BASE_AWS_DOMAIN={{BASE_AZ_DOMAIN}}"
