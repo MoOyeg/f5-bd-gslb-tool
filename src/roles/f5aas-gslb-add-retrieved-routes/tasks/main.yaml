@@ -21,7 +21,7 @@
 
 - name: "Processing non-TLS routes for each host"
   include_tasks: routes.yaml
-  with_items: "{{ target_clusters }}"
+  with_items: "{{ new_target_clusters }}"
   vars:
     monitorType: "http_advanced"
     protocol: "http"
