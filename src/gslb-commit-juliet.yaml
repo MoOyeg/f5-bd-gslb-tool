@@ -13,6 +13,7 @@
     - debug: msg="BASE_DOMAIN={{BASE_DOMAIN}}"
     - debug: msg="BASE_AWS_DOMAIN={{BASE_AWS_DOMAIN}}"
     - debug: msg="BASE_AWS_DOMAIN={{BASE_AZ_DOMAIN}}"
+    - debug: msg="Testing"
 
     # - name: Pip install dependencies
     #   pip:
