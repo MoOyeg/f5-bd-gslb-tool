@@ -27,6 +27,21 @@
     #     extra_args: --upgrade --user
 
     - debug: msg="Lookup IPs"
+    
+    - name: Get EKS,AKS,GKS clusters from list
+      set_fact:
+        target_other_clusters: "{{ ansible_interfaces | select('match', '^(eks|aks|gks).*') | list }}"
+     
+    - debug: msg="{{target_other_clusters}}"
+    
+    - set_fact:
+        temp_target_clusters: "{{ target_clusters | difference(target_other_clusters) }}"
+
+    - debug: msg="{{temp_target_clusters}}"
+    
+   - set_fact:
+        temp_clusters: "{{ temp_target_clusters }}"    
+        
     - name: Generate apiEndpoint URLs
       set_fact:
         apiEndpoint: "{{ apiEndpoint|default({}) | combine({ item: 'https://api.'+ item + '.' + API_DOMAIN + ':6443' }) }}"
