@@ -40,7 +40,7 @@
     - debug: msg="{{temp_target_clusters}}"
     
     - set_fact:
-        temp_clusters: "{{ temp_target_clusters }}"    
+        target_clusters: "{{ temp_target_clusters }}"    
         
     - name: Generate apiEndpoint URLs
       set_fact:
@@ -68,7 +68,7 @@
       when: lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_AZ_DOMAIN).split(',')[0] != 'NXDOMAIN'
 
     - debug: msg="{{publicAddress}}"
-
+    
     - name: "Reset gslbState.desired.yaml"
       shell: |
         echo "gslbState: []" > vars/gslbState.desired.yaml
