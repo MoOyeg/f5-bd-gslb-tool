@@ -48,7 +48,12 @@
     
     - name: Remove Old Local Cluster
       set_fact:
-        temp_target_clusters: "{{ temp_target_clusters | difference(target_local_cluster) }}"
+        temp_clusters: "{{ temp_target_clusters | difference(target_local_cluster) }}"
+      when: target_local_cluster is defined
+    
+    - name: Update Target Clusters when when target_local_cluster is defined
+      set_fact:
+        temp_target_clusters: "{{ temp_clusters }}"
       when: target_local_cluster is defined
 
     - name: Create New Target Cluster List when target_local_cluster is defined
