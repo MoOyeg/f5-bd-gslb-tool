@@ -39,7 +39,7 @@
 
     - debug: msg="{{temp_target_clusters}}"
     
-   - set_fact:
+    - set_fact:
         temp_clusters: "{{ temp_target_clusters }}"    
         
     - name: Generate apiEndpoint URLs
