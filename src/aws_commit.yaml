@@ -11,3 +11,10 @@
     
     - name: Create AWS credentials
       ansible.builtin.shell: "aws configure set aws_secret_access_key {{AWS_SECRET_ACCESS_KEY}} --profile test"
+
+    - name: Test AWS Credentials
+      ansible.builtin.shell: "aws ec2 describe-regions --profile test"
+
+    - name: Create Kubeconfig
+      ansible.builtin.shell: "aws eks --region us-east-1 update-kubeconfig --name {{item}}"
+      loop: "{{target_clusters}}"
