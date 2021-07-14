@@ -83,7 +83,7 @@
 
     - name: Remove Old Local Cluster
       set_fact:
-        temp_clusters: "{{ target_clusters | select('match', '^(local-cluster).*') | list) }}"
+        temp_clusters: "{{ target_clusters | select('match', '^(local-cluster).*' | list) }}"
       when: target_local_cluster is defined
 
     - name: Update Target Clusters when when target_local_cluster is defined
