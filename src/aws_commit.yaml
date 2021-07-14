@@ -106,12 +106,12 @@
 
     - name: Create New Target Cluster List when target_local_cluster is defined
       set_fact:
-        new_target_clusters: "{{ target_other_cluster + target_local_cluster }}"
+        new_target_clusters: "{{ target_other_clusters + target_local_cluster }}"
       when: target_local_cluster is defined
 
     - name: Create New Target Cluster List when target_local_cluster is undefined
       set_fact:
-        new_target_clusters: "{{ target_other_cluster }}"
+        new_target_clusters: "{{ target_other_clusters }}"
       when: target_local_cluster is undefined
 
     - name: Generate apiEndpoint URLs
