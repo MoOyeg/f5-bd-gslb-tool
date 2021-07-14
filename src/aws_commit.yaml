@@ -28,4 +28,7 @@
 
     - name: kubectl get information
       ansible.builtin.shell: "kubectl config get-contexts "
-      loop: "{{target_other_clusters}}"    
+      register: get_contexts
+      loop: "{{target_other_clusters}}" 
+
+    - debug: msg="{{get_contexts}}"
