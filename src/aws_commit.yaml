@@ -93,7 +93,7 @@
 
     - name: Create New Target Cluster List when target_local_cluster is defined
       set_fact:
-        new_target_clusters: "{{ temp_target_clusters + target_local_cluster + target_other_clusters }}"
+        new_target_clusters: "{{ temp_target_clusters + target_local_cluster }}"
       when: target_local_cluster is defined
 
     - name: Create New Target Cluster List when target_local_cluster is undefined
