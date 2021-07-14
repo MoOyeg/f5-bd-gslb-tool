@@ -62,6 +62,8 @@
         publicAddress: "{{ publicAddress|default({}) | combine({ item.0: { 'az1': lookup('dig', item.1) } }) }}"
       loop: "{{ target_other_clusters | zip(hostname.results[0].stdout_lines) | list }}"
 
+    - debug: msg="{{publicAddress}}"
+
     - name: Confirm EKS URL is available before trying to add to f5
       ansible.builtin.shell: "curl {{item}}"
       retries: 3
