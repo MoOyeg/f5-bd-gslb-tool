@@ -75,21 +75,21 @@
     #Demarc
     - debug: msg="Lookup IPs"
 
-    - name: Set Local-Cluster if defined
-      set_fact:
-        target_local_cluster:
-          - "cluster1"
-      when: "{{ target_clusters | select('match', '^(local-cluster).*') | list | length > 0 }}"
+    # - name: Set Local-Cluster if defined
+    #   set_fact:
+    #     target_local_cluster:
+    #       - "cluster1"
+    #   when: "{{ target_clusters | select('match', '^(local-cluster).*') | list | length > 0 }}"
 
-    - name: Remove Old Local Cluster
-      set_fact:
-        temp_clusters: "{{ target_clusters | select('match', '^(local-cluster).*') | list }}"
-      when: target_local_cluster is defined
+    # - name: Remove Old Local Cluster
+    #   set_fact:
+    #     temp_clusters: "{{ target_clusters | select('match', '^(local-cluster).*') | list }}"
+    #   when: target_local_cluster is defined
 
-    - name: Update Target Clusters when when target_local_cluster is defined
-      set_fact:
-        temp_target_clusters: "{{ target_clusters | difference(temp_clusters ) }}"
-      when: target_local_cluster is defined
+    # - name: Update Target Clusters when when target_local_cluster is defined
+    #   set_fact:
+    #     temp_target_clusters: "{{ target_clusters | difference(temp_clusters ) }}"
+    #   when: target_local_cluster is defined
 
     - name: Create New Target Cluster List when target_local_cluster is defined
       set_fact:
