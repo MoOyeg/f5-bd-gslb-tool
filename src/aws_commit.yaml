@@ -88,7 +88,7 @@
 
     - name: Update Target Clusters when when target_local_cluster is defined
       set_fact:
-        temp_target_clusters: "{{ temp_clusters | difference(target_clusters) }}"
+        temp_target_clusters: "{{ target_clusters | difference(temp_clusters ) }}"
       when: target_local_cluster is defined
 
     - name: Create New Target Cluster List when target_local_cluster is defined
