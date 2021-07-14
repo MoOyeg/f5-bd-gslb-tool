@@ -59,7 +59,7 @@
 
     - name: Retrieve publicAddress for AWS
       set_fact:
-        publicAddress: "{{ publicAddress|default({}) | combine({ item.0: { 'az1': lookup('dig', item.1) } }) }}"
+        publicAddress: "{{ publicAddress|default({}) | combine({ item.0: { 'az1': lookup('dig', item.1[1:-1] + '/A') } }) }}"
       loop: "{{ target_other_clusters | zip(hostname.results[0].stdout_lines) | list }}"
 
     - debug: msg="{{publicAddress}}"
