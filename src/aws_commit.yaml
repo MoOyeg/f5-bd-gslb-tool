@@ -29,8 +29,15 @@
       ansible.builtin.shell: "KUBECONTEXT=$(kubectl config get-contexts | grep -i {{item}}| awk '{print $2}') && kubectl config rename-context $KUBECONTEXT {{item}}"
       loop: "{{target_other_clusters}}"
 
-    - name: kubectl get information
-      ansible.builtin.shell: "kubectl get contexts"
+    - name: kubectl debug
+      ansible.builtin.shell: "kubectl config get-contexts"
       register: get_contexts
 
     - debug: msg="{{get_contexts}}"
+
+    - name: kubectl get hostname
+      ansible.builtin.shell: "kubectl config use-context {{item}} && kubectl get svc/pacman -o json -n pacman-app | jq '.status.loadBalancer.ingress[0].hostname'"
+      register: hostname
+      with_items: "{{target_other_clusters}}"
+
+    - debug: msg="{{hostname}}"
