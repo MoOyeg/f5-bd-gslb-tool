@@ -40,4 +40,4 @@
       register: hostname
       with_items: "{{target_other_clusters}}"
 
-    - debug: msg="{{hostname.results.stdout_lines[1]}}"
+    - debug: msg="{{hostname.results.stdout_lines}}"
