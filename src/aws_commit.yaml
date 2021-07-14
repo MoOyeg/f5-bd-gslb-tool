@@ -42,19 +42,24 @@
 
     - debug: msg="{{hostname.results[0].stdout_lines}}"
 
-    - name: get ip address
-      ansible.builtin.shell: dig +noall +short -t A {{item}}
-      retries: 5
-      delay: 10
-      register: iplist
-      with_items: "{{hostname.results[0].stdout_lines}}"
+    #Running into dig issue on ansible task
+    # - name: get ip address
+    #   ansible.builtin.shell: dig +noall +short -t A {{item}}
+    #   retries: 5
+    #   delay: 10
+    #   register: iplist
+    #   with_items: "{{hostname.results[0].stdout_lines}}"
 
-    - debug: msg="{{iplist.results[0].stdout_lines}}"
+    # - debug: msg="{{iplist.results[0].stdout_lines}}"
 
-    - name: create public ip address from iplist
+    # - name: create public ip address from iplist
+    #   set_fact:
+    #     publicAddress: "{{ publicAddress|default({}) | combine({ item.0: { 'az1': item.1 } }) }}"
+    #   loop: "{{ target_other_clusters | zip(iplist.results[0].stdout_lines) | list }}"
+    - name: Retrieve publicAddress for AWS
       set_fact:
-        publicAddress: "{{ publicAddress|default({}) | combine({ item.0: { 'az1': item.1 } }) }}"
-      loop: "{{ target_other_clusters | zip(iplist.results[0].stdout_lines) | list }}"
+        publicAddress: "{{ publicAddress|default({}) | combine({ item.0: { 'az1': lookup('dig', 'item.1') }}"
+      loop: "{{ target_other_clusters | zip(hostname.results[0].stdout_lines) | list }}"
 
     - name: Confirm EKS URL is available before trying to add to f5
       ansible.builtin.shell: "curl {{item}}"
