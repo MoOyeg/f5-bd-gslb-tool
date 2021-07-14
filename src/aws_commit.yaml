@@ -1,5 +1,7 @@
 - hosts: localhost
   gather_facts: no
+  vars:
+    hostnamelist: []
   vars_files:
     # - "vars/credentials.yaml"
     - "vars/setup.yaml"
@@ -40,7 +42,7 @@
       register: hostname
       with_items: "{{target_other_clusters}}"
 
-    - debug: msg="{{hostname.results[0].stdout_lines}}"
+    - debug: msg="{{hostname.results}}"
 
     #Running into dig issue on ansible task
     # - name: get ip address
@@ -57,10 +59,22 @@
     #     publicAddress: "{{ publicAddress|default({}) | combine({ item.0: { 'az1': item.1 } }) }}"
     #   loop: "{{ target_other_clusters | zip(iplist.results[0].stdout_lines) | list }}"
 
+    - name: get hostnamelist
+      set_fact:
+        hostnamelist: "{{hostnamelist + [item.stdout_lines] }}"
+      with_items: "{{hostname.results}}"
+
+    - debug: msg="{{item}}"
+      with_items: "{{hostnamelist}}"
+
+    - name: debug test
+      debug: msg="{{item.0}} {{item.1}}"
+      loop: "{{ target_other_clusters | zip(hostnamelist) | list }}"
+
     - name: Retrieve publicAddress for AWS
       set_fact:
-        publicAddress: "{{ publicAddress|default({}) | combine({ item.0: { 'az1': lookup('dig', item.1[1:-1] + '/A') } }) }}"
-      loop: "{{ target_other_clusters | zip(hostname.results[0].stdout_lines) | list }}"
+        publicAddress: "{{ publicAddress|default({}) | combine({ item.0: { 'az1': lookup('dig', item.1[0][1:-1] ) } }) }}"
+      loop: "{{ target_other_clusters | zip(hostnamelist) | list }}"
 
     - debug: msg="{{publicAddress}}"
 
@@ -71,7 +85,6 @@
       register: result
       until: result.rc == 0
       with_items: "{{hostname.results[0].stdout_lines}}"
-
     #Demarc
     - debug: msg="Lookup IPs"
 
