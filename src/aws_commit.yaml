@@ -22,7 +22,7 @@
         target_other_clusters: "{{ target_clusters | select('match', '^(eks|aks|gks).*') | list }}"
 
     - name: Create Kubeconfig
-      ansible.builtin.shell: "aws eks --region us-east-1 update-kubeconfig --name {{item}} --profile test"
+      ansible.builtin.shell: "aws eks --region {{regions[item].region}} update-kubeconfig --name {{item}} --profile test"
       loop: "{{target_other_clusters}}"
 
     - name: kubectl get information
@@ -36,8 +36,111 @@
     - debug: msg="{{get_contexts}}"
 
     - name: kubectl get hostname
-      ansible.builtin.shell: "kubectl config use-context {{item}} && kubectl get svc/pacman -o json -n pacman-app | jq '.status.loadBalancer.ingress[0].hostname'"
+      ansible.builtin.shell: "kubectl config use-context {{item}} &> /dev/null && kubectl get svc/pacman -o json -n pacman-app | jq '.status.loadBalancer.ingress[0].hostname'"
       register: hostname
       with_items: "{{target_other_clusters}}"
 
-    - debug: msg="{{hostname.results}}"
+    - debug: msg="{{hostname.results[0].stdout_lines}}"
+
+    - name: get ip address
+      ansible.builtin.shell: dig +noall +short -t A {{item}}
+      retries: 5
+      delay: 10
+      register: iplist
+      with_items: "{{hostname.results[0].stdout_lines}}"
+
+    - debug: msg="{{iplist.results[0].stdout_lines}}"
+
+    - name: create public ip address from iplist
+      set_fact:
+        publicAddress: "{{ publicAddress|default({}) | combine({ item.0: { 'az1': item.1 } }) }}"
+      loop: "{{ target_other_clusters | zip(iplist.results[0].stdout_lines) | list }}"
+
+    - name: Confirm EKS URL is available before trying to add to f5
+      ansible.builtin.shell: "curl {{item}}"
+      retries: 3
+      delay: 30
+      register: result
+      until: result.rc == 0
+      with_items: "{{hostname.results[0].stdout_lines}}"
+
+    #Demarc
+    - debug: msg="Lookup IPs"
+
+    - name: Get EKS,AKS,GKS clusters from list
+      set_fact:
+        target_other_clusters: "{{ target_clusters | select('match', '^(eks|aks|gks).*') | list }}"
+
+    - debug: msg="{{target_other_clusters}}"
+
+    - name: Remove Non-OpenShift Clusters
+      set_fact:
+        temp_target_clusters: "{{ target_clusters | difference(target_other_clusters) }}"
+
+    - debug: msg="{{temp_target_clusters}}"
+
+    - name: Set Local-Cluster if defined
+      set_fact:
+        target_local_cluster:
+          - "cluster1"
+      when: "{{ target_clusters | select('match', '^(local-cluster).*') | list | length > 0 }}"
+
+    - name: Remove Old Local Cluster
+      set_fact:
+        temp_clusters: "{{ temp_target_clusters | difference(target_clusters | select('match', '^(local-cluster).*') | list) }}"
+      when: target_local_cluster is defined
+
+    - name: Update Target Clusters when when target_local_cluster is defined
+      set_fact:
+        temp_target_clusters: "{{ temp_clusters }}"
+      when: target_local_cluster is defined
+
+    - name: Create New Target Cluster List when target_local_cluster is defined
+      set_fact:
+        new_target_clusters: "{{ temp_target_clusters + target_local_cluster }}"
+      when: target_local_cluster is defined
+
+    - name: Create New Target Cluster List when target_local_cluster is undefined
+      set_fact:
+        new_target_clusters: "{{ temp_target_clusters }}"
+      when: target_local_cluster is undefined
+
+    - name: Generate apiEndpoint URLs
+      set_fact:
+        apiEndpoint: "{{ apiEndpoint|default({}) | combine({ item: 'https://api.'+ item + '.' + API_DOMAIN + ':6443' }) }}"
+      loop: "{{new_target_clusters}}"
+    - debug: msg="{{apiEndpoint}}"
+
+    - name: Retrieve publicAddress for AWS
+      set_fact:
+        #publicAddress: "{{ publicAddress|default({}) | combine({ item: { 'az1': lookup('dig', 'multicloud-console.apps.'+item+'.demo.red-chesterfield.com').split(',')[0], 'az2': lookup('dig', 'multicloud-console.apps.'+item+'.demo.red-chesterfield.com').split(',')[1]} }) }}"
+        publicAddress: "{{ publicAddress|default({}) | combine({ item: { 'az1': lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_AWS_DOMAIN).split(',')[0]} }) }}"
+      loop: "{{new_target_clusters}}"
+      when: lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_AWS_DOMAIN).split(',')[0] != 'NXDOMAIN'
+
+    - name: Retrieve publicAddress for GCP
+      set_fact:
+        publicAddress: "{{ publicAddress|default({}) | combine({ item: { 'az1': lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_GCP_DOMAIN).split(',')[0]} }) }}"
+      loop: "{{new_target_clusters}}"
+      when: lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_GCP_DOMAIN).split(',')[0] != 'NXDOMAIN'
+
+    - name: Retrieve publicAddress for Azure
+      set_fact:
+        publicAddress: "{{ publicAddress|default({}) | combine({ item: { 'az1': lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_AZ_DOMAIN).split(',')[0]} }) }}"
+      loop: "{{new_target_clusters}}"
+      when: lookup('dig', 'console-openshift-console.apps.'+item+'.'+BASE_AZ_DOMAIN).split(',')[0] != 'NXDOMAIN'
+
+    - debug: msg="{{publicAddress}}"
+
+    - name: "Reset gslbState.desired.yaml"
+      shell: |
+        echo "gslbState: []" > vars/gslbState.desired.yaml
+      args:
+        executable: /bin/bash
+  roles:
+    - f5aas-gslb-add-retrieved-routes
+    - role: f5aas-gslb-prepare-subscription
+    - role: f5aas-gslb-login
+    - role: f5aas-gslb-get-account-details
+    - role: f5aas-gslb-publish-subscription
+    - role: f5aas-gslb-logout
