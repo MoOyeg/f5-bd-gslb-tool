@@ -36,8 +36,8 @@
     - debug: msg="{{get_contexts}}"
 
     - name: kubectl get hostname
-      ansible.builtin.shell: "kubectl config use-context {{item}} &1> /dev/null && kubectl get svc/pacman -o json -n pacman-app | jq '.status.loadBalancer.ingress[0].hostname'"
+      ansible.builtin.shell: "kubectl config use-context {{item}} && kubectl get svc/pacman -o json -n pacman-app | jq '.status.loadBalancer.ingress[0].hostname'"
       register: hostname
       with_items: "{{target_other_clusters}}"
 
-    - debug: msg="{{hostname.results}}"
+    - debug: msg="{{hostname.results.stdout_lines[1]}}"
