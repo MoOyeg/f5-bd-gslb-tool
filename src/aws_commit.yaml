@@ -75,18 +75,6 @@
     #Demarc
     - debug: msg="Lookup IPs"
 
-    - name: Get EKS,AKS,GKS clusters from list
-      set_fact:
-        target_other_clusters: "{{ target_clusters | select('match', '^(eks|aks|gks).*') | list }}"
-
-    - debug: msg="{{target_other_clusters}}"
-
-    - name: Remove Non-OpenShift Clusters
-      set_fact:
-        temp_target_clusters: "{{ target_clusters | difference(target_other_clusters) }}"
-
-    - debug: msg="{{temp_target_clusters}}"
-
     - name: Set Local-Cluster if defined
       set_fact:
         target_local_cluster:
@@ -95,7 +83,7 @@
 
     - name: Remove Old Local Cluster
       set_fact:
-        temp_clusters: "{{ temp_target_clusters | difference(target_clusters | select('match', '^(local-cluster).*') | list) }}"
+        temp_clusters: "{{ target_clusters | select('match', '^(local-cluster).*') | list) }}"
       when: target_local_cluster is defined
 
     - name: Update Target Clusters when when target_local_cluster is defined
